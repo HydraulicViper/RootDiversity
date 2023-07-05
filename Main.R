@@ -23,30 +23,12 @@ source("./GRANAR/R/micro_hydro.R")
 print("loading params")
 params <- read_param_xml("./GRANAR/www/Zea_mays_CT.xml")
 ####
-Sampl <- read.csv("./ConductivityData_AllFocalAccessions.csv")
-# Unique set of hydraulic properties for the estimation of kr
-Sampl$kw = 0.00024
-Sampl$kAQP = 0.00043
-Sampl$kpl = 5.3e-12
-Sampl$thickness = 1.5
-# uniform parameter for GRANAR
-Sampl$radius = Sampl$root_radius
-Sampl$RXA = pi*Sampl$radius^2
-Sampl$r_stele = sqrt(Sampl$TSA/pi)
-Sampl$TCA = Sampl$RXA-Sampl$TSA
-Sampl$log_CW = log(Sampl$radius-Sampl$r_stele, exp(1))
-Sampl$CF = exp(3.1091221+0.6718735*Sampl$log_CW)
-Sampl$OneC = exp(Sampl$log_CW)/Sampl$CF
-Sampl$nX = Sampl$NMV
-Sampl$XMA_1 = Sampl$MVA/Sampl$NMV
-Sampl$X_size= 2*sqrt(Sampl$XMA_1/pi)
-Sampl$aerenchyma = Sampl$AA/Sampl$TCA
+Sampl <- read.csv("./Accession_list.csv")
 
 
 ###### Proc generation of the anatomies
-ROOT = NULL
 for(i in 1:nrow(Sampl)){
-  tmp_sampl <- Sampl[i,]  
+  tmp_sampl <- Sampl[i,]
   print(i)
   if(file.exists("./MECHA/cellsetdata/current_root.xml")){
     file.remove("./MECHA/cellsetdata/current_root.xml")
@@ -58,12 +40,10 @@ for(i in 1:nrow(Sampl)){
   file.copy("./MECHA/cellsetdata/current_root.xml", paste0("./MECHA/cellsetdata/root_",i,".xml"), overwrite = T)
   file.copy("./MECHA/Projects/GRANAR/in/Maize_Geometry_aer.xml",
             paste0( "./MECHA/Projects/GRANAR/in/Maize_Geometry_aer_",i,".xml"), overwrite = T)
-  tmp_root = sim$nodes
-  ROOT = rbind(ROOT, tmp_root%>%mutate(Accession = tmp_sampl$Accession))
 }
 
 
-# write.csv(ROOT, "./GRANAR/anat.csv")
+# # write.csv(ROOT, "./GRANAR/anat.csv")
 ROOT = read.csv("./GRANAR/anat.csv")
 
 id_clust = unique(ROOT$Accession[grepl("cluster", ROOT$Accession)])
@@ -92,7 +72,7 @@ for(j in fls){
   message("--------------")
   print(j)
   message("--------------")
-  
+
   if(file.exists("./MECHA/Projects/GRANAR/out/M1v4/Root/Project_Test/results/Macro_prop_1,0.txt")){
     file.remove("./MECHA/Projects/GRANAR/out/M1v4/Root/Project_Test/results/Macro_prop_1,0.txt")
     file.remove("./MECHA/Projects/GRANAR/out/M1v4/Root/Project_Test/results/Macro_prop_2,1.txt")
@@ -100,27 +80,28 @@ for(j in fls){
     file.remove("./MECHA/cellsetdata/current_root.xml")
     file.remove("./MECHA/Projects/GRANAR/in/Maize_Geometry_aer.xml")
   }
-  
+
   # Loading input files for the current estimation
   fc <- file.copy(paste0("./MECHA/cellsetdata/",j), "./MECHA/cellsetdata/current_root.xml", overwrite = T)
   if(fc == FALSE){next()}
   fc <- file.copy(paste0("./MECHA/Projects/GRANAR/in/Maize_Geometry_aer_", parse_number(j), ".xml"),
                   paste0("./MECHA/Projects/GRANAR/in/Maize_Geometry_aer.xml"), overwrite = T)
   if(fc == FALSE){next()}
-  
+
   # MECHA input change
-  id <- parse_number(j) 
+  id <- parse_number(j)
   microhydro(path = "MECHA/Projects/GRANAR/in/Maize_hydraulics.xml",
-             kw = Sampl$kw[parse_number(j)],
-             km = Sampl$km[parse_number(j)], 
-             kAQP = Sampl$kAQP[parse_number(j)],
-             kpl = Sampl$kpl[parse_number(j)])
-  wallthick(path = "MECHA/Projects/GRANAR/in/Maize_Geometry_aer.xml", Sampl$thickness[parse_number(j)])
-  
-  # Run MECHA - - - - - - - 
+             kw = 0.00024,
+             km = 3e-5,
+             kAQP = 0.00043,
+             kpl = 5.3e-12)
+
+  wallthick(path = "MECHA/Projects/GRANAR/in/Maize_Geometry_aer.xml", 1.5)
+
+  # Run MECHA - - - - - - -
   system("python3 ./MECHA/MECHAv4_septa.py")
   message("python script has ended")
-  
+
   # if works well, then:
   if(file.exists("./MECHA/Projects/GRANAR/out/M1v4/Root/Project_Test/results/Macro_prop_1,0.txt")){
     # Save output
@@ -132,17 +113,17 @@ for(j in fls){
     file.copy("./MECHA/Projects/GRANAR/out/M1v4/Root/Project_Test/results/Macro_prop_4,2.txt",
               paste0("./MECHA/Projects/GRANAR/out/M1v4/Root/Macro_prop_4,2_",id,".txt"), overwrite = T)
   }else{message ("fail and move to next simulation")}
-  
+
 }
 
 
 # Read Mecha output
-fls <- list.files("./MECHA/Projects/GRANAR/out/M1v4/Root/")
+fls <- list.files("./MECHA/Projects/GRANAR/out/M1v4/Root/res/")
 fls <- fls[grepl(".txt", fls)]
 
 K <- tibble(kr = NULL, kx = NULL, sampl_id = NULL, apo = NULL)
 for (k in fls){
-  M <- read_file(paste0("./MECHA/Projects/GRANAR/out/M1v4/Root/",k))
+  M <- read_file(paste0("./MECHA/Projects/GRANAR/out/M1v4/Root/res/",k))
   tmp_M <- strsplit(M, split="\n")[[1]]
   K_xyl_spec <- as.numeric(strsplit(tmp_M[15], " ")[[1]][5])
   kr_M <- as.numeric(strsplit(tmp_M[17], " ")[[1]][4])
@@ -153,28 +134,51 @@ for (k in fls){
 
 K = K %>%arrange(sampl_id, apo)
 
-Sampl$kr1_new = K$kr[K$apo == 1]
-Sampl$kr2_new = K$kr[K$apo == 2]
-Sampl$kr3_new = K$kr[K$apo == 4]
+Sampl$kr1_new[Sampl$id %in% K$sampl_id] = K$kr[K$apo == 1]
+Sampl$kr2_new[Sampl$id %in% K$sampl_id] = K$kr[K$apo == 2]
+Sampl$kr3_new[Sampl$id %in% K$sampl_id] = K$kr[K$apo == 4]
 
-Sampl$Kr1 = K$kr[K$apo == 1]*2*pi*Sampl$root_radius
-Sampl$Kr2 = K$kr[K$apo == 2]
-Sampl$Kr3 = K$kr[K$apo == 4]
+Sampl$Kr1[Sampl$id %in% K$sampl_id] = K$kr[K$apo == 1]*2*pi*Sampl$radius[Sampl$id %in% K$sampl_id]
+Sampl$Kr2[Sampl$id %in% K$sampl_id] = K$kr[K$apo == 2]*2*pi*Sampl$radius[Sampl$id %in% K$sampl_id]
+Sampl$Kr3[Sampl$id %in% K$sampl_id] = K$kr[K$apo == 4]*2*pi*Sampl$radius[Sampl$id %in% K$sampl_id]
+
+Acces = c("CONICO", "GORDO", "JALA", "NALTEL", "PALOME", "REVENT", "TABLON", "ZAPCHI")
+
 
 Sampl%>%
   ggplot()+
-  geom_point(aes(kr_1_AA, kr1_new), colour = "blue")+ # Endodermal Casparian band
-  geom_point(aes(kr_2, kr2_new), colour = "red")+ # Suberized endodermis
-  geom_point(aes(kr_3, kr3_new), colour = "grey")+ # Suberized endodermis and Exodermal Casparian band
-  geom_abline(slope = 1)+
-  theme_classic()+
-  ylab("kr Adrien")+
-  xlab("kr Chloee")
+  geom_point(aes(radius, kr1_new, colour = radius-r_stele), alpha = 0.5)+
+  geom_point(aes(radius, kr1_new),shape = 1, colour = "red", size = 5,
+             data = Sampl%>%filter(Accession %in% Acces))+
+  geom_text(aes(x = radius+0.07*radius, y = kr1_new+kr1_new*0.04, label = Accession),
+            angle = 45,
+            check_overlap = TRUE,shape = 1, colour = "red", size = 5,
+             data = Sampl%>%filter(Accession %in% Acces, !duplicated(Accession)))+
+  geom_point(aes(radius, kr1_new),shape = 1, colour = "blue", size = 5,
+             data = Sampl%>%filter(Accession %in% id_clust))+
+  theme_dark()+
+  labs(colour = "Cortex width [mm]")+
+  ylab("Root Radial hydraulic conductivity [cm hPa-1 d-1] ")+
+  xlab("Root Radius [mm]")+
+  viridis::scale_colour_viridis()
+
+Sampl%>%
+  ggplot()+
+  geom_point(aes(radius, Kr1, colour = radius-r_stele), alpha = 0.5)+
+  geom_point(aes(radius, Kr1),shape = 1, colour = "red", size = 5,
+             data = Sampl%>%filter(Accession %in% Acces))+
+  geom_point(aes(radius, Kr1),shape = 1, colour = "blue", size = 5,
+             data = Sampl%>%filter(Accession %in% id_clust))+
+  theme_dark()+
+  labs(colour = "Cortex width [mm]")+
+  ylab("Root Radial hydraulic conductance [cm4 hPa-1 d-1] ")+
+  xlab("Root Radius [mm]")+
+  viridis::scale_colour_viridis()
 
 
-  
 
-  
+
+
 
 
 
