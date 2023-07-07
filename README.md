@@ -78,8 +78,7 @@ Three hydraulic scenario were implemeted for each simulation:
 
 - 2.  Endodermal suberization
 
-- 3.  Endodermis full suberization and exodermal Casparian strip (dashed
-      green).
+- 3.  Endodermis full suberization and exodermal Casparian strip 
 
 ``` r
 # ### Proc: estimation of the radial hydraulic conductivities
