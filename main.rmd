@@ -1,7 +1,13 @@
 ---
-title: "GRANAR-MECHA: modeling pipeline to estimate emergent hydraulic properties"
+title: "Evidence that variation in root anatomy contributes to local adaptation in Mexican native maize"
 output: github_document
 ---
+
+Chloee M. McLaughlin, Meng Li, Melanie Perryman, Adrien Heymans, Hannah Schneider, Jesse R. Lasky and Ruairidh J. H. Sawers
+
+## GRANAR-MECHA: modeling pipeline to estimate emergent hydraulic properties"
+
+
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -27,19 +33,23 @@ params <- read_param_xml("./GRANAR/www/Zea_mays_CT.xml")
 Sampl <- read.csv("./Accession_list.csv")
 ```
 
+### Used known model: 
+- The Generator of root anatomy in R - **GRANAR** [Heymans et al. 2020](https://doi.org/10.1104/pp.19.00617)
+- The model of explicit hydraulic anatomy - **MECHA** [Couvreur et al. 2018](https://doi.org/10.1104/pp.18.01006)
+
 ## Run GRANAR to simulate cross-section anatomy from trait values
 
 The Generator of root anatomy (GRANAR; Heymans et al. 2020) use a set of input that can be derive from a few anatomical traits. 
 The anatomical traits needed to simulate root cross-section anatomy are:
 
-- the root radius
-- the stele radius
-- the number of cortical files
-- the mean width of one cortical file
-- the number of metaxyleme elements
-- the mean diamter of a metxyleme element (assuming spherical shape)
-- the area ratio of the aerenchyma vs. the cortex
-- the cortical area (cross section area - stele area)
+| Anatomical parameter          | Unit |
+|-------------------------------|------|
+| Root radius                   | mm   |
+| Stele radius                  | mm   |
+| Cortex file number            | -    |
+| Aerenchyma area               | mm^2 |
+| Metaxylem area                | mm^2 |
+| Nbr of metaxylem elm          | -    |
 
 ```{r generate_anatomies, eval=FALSE}
 ###### Proc for the generation of the anatomies
@@ -91,7 +101,15 @@ ROOT%>%
 
 ## Run MECHA to estimate emergent hydraulic properties
 
-The model of explicit cross-section hydraulic architecture (MECHA; Couvreur et al. 2018) estimates kr from the root transverse anatomy generated with GRANAR or CellSeT (Pound et al., 2012) and from the subcellular scale hydraulic properties of walls, membranes, and plasmodesmata. Cell wall hydraulic conductivity was set to 2.8 10−9 m2s-1MPa−1, as measured by Zhu and Steudle (1991) in maize. Lignified and suberized wall segments in the endodermis and exodermis (Fig. 6) were considered hydrophobic and attributed null hydraulic conductivities. The protoplast permeability (Lpc, 7.7 10−7 m s-1MPa−1) measured by Ehlert et al. (2009) was partitioned into its three components: the plasma membrane intrinsic hydraulic conductivity (km), the contribution of aquaporins to the plasma membrane hydraulic conductivity (kAQP), and the conductance of plasmodesmata per unit membrane surface (kPD). The latter parameter was estimated as 2.4 10−7 m s-1MPa−1 (Couvreur et al., 2018), based on plasmodesmata frequency data from Ma and Peterson (2001), and the plasmodesmata conductance estimated by Bret-Harte and Silk (1994). By blocking aquaporins with an acid-load treatment, Ehlert et al. (2009) measured a kAQP of 5.0 10−7 m s-1MPa−1. The remaining value of km after subtraction of kAQP and kPD from Lpc was 0.3 10−7 m s-1MPa−1. Each value of km, kAQP, kPD, and Lpc was set uniform across tissue types. For details on the computation of kr, see Couvreur et al. (2018).
+The model of explicit cross-section hydraulic architecture (MECHA; Couvreur et al. 2018) estimates kr from the root transverse anatomy generated with GRANAR or CellSeT (Pound et al., 2012) and from the subcellular scale hydraulic properties of walls, membranes, and plasmodesmata.
+
+| Sub-cell hydraulic properties   | Unit                 | Value    | Ref.                 |
+|---------------------------------|----------------------|----------|----------------------|
+| Cell wall conductivity          | $cm^2/hPa/d$         | 0.00024  | Zhu and Steudle 1991 |
+| Cell membrane base permeability | $cm/hPa/d$           | 3e-5     | Ehlert et al. 2009   |
+| Aquaporin contribution          | $cm/hPa/d$           | 0.00043  | Ehlert et al. 2009   |
+| Conductance of plasmodesmata    | $cm^3/hPa/d/plasmo.$ | 5.3e-12  | Couvreur et al. 2018 |
+| Cell wall thickness             | $µm$                 | 1.5      | Heymans et al. 2020  |
 
 Three hydraulic scenario were implemeted for each simulation:
 
