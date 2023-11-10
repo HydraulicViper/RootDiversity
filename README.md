@@ -1,3 +1,5 @@
+[![DOI](https://zenodo.org/badge/302624177.svg)](https://zenodo.org/doi/10.5281/zenodo.4316761)
+
 Evidence that variation in root anatomy contributes to local adaptation
 in Mexican native maize
 ================
