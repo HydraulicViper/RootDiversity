@@ -8,10 +8,6 @@ in Mexican native maize
 
 McLaughlin, C. M., Li, M., Perryman, M., Heymans, A., Schneider, H., Lasky, J. R., & Sawers, R. J. H. (2024). Evidence that variation in root anatomy contributes to local adaptation in Mexican native maize. Evolutionary Applications, 17, e13673. https://doi.org/10.1111/eva.13673
 
-<div data-badge-popover="right" data-badge-type="medium-donut" data-doi="10.1111/eva.13673" data-hide-no-mentions="true" class="altmetric-embed"></div>
-
-<script type='text/javascript' src='https://d1bxh8uas1mnw7.cloudfront.net/assets/embed.js'></script>
-
 ## GRANAR-MECHA: modeling pipeline to estimate emergent hydraulic properties”
 
 ### Used known model:
