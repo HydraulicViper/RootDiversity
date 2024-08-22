@@ -4,8 +4,9 @@ Evidence that variation in root anatomy contributes to local adaptation
 in Mexican native maize
 ================
 
-Chloee M. McLaughlin, Meng Li, Melanie Perryman, Adrien Heymans, Hannah
-Schneider, Jesse R. Lasky and Ruairidh J. H. Sawers
+### How to Cite
+
+McLaughlin, C. M., Li, M., Perryman, M., Heymans, A., Schneider, H., Lasky, J. R., & Sawers, R. J. H. (2024). Evidence that variation in root anatomy contributes to local adaptation in Mexican native maize. Evolutionary Applications, 17, e13673. https://doi.org/10.1111/eva.13673
 
 ## GRANAR-MECHA: modeling pipeline to estimate emergent hydraulic properties”
 
