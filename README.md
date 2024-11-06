@@ -1,4 +1,4 @@
-1.2 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.14044668.svg)](https://doi.org/10.5281/zenodo.14044668)
+1.2 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.14045758.svg)](https://doi.org/10.5281/zenodo.14045758)
 
 1.1 [![DOI](https://zenodo.org/badge/649583552.svg)](https://zenodo.org/doi/10.5281/zenodo.10104520)
 
@@ -165,7 +165,7 @@ radial hydraulic conductivity and conductance.
 
 ## This repository was updated and branched for:
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.14044668.svg)](https://doi.org/10.5281/zenodo.14044668)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.14045758.svg)](https://doi.org/10.5281/zenodo.14045758)
 
 Node order matters: comparative analysis of soil water limitation effects on root anatomy between nodal position and maize genotypes (Zea mays L.)
 ===============
