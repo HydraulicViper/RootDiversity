@@ -1,0 +1,339 @@
+
+
+### loading dependencies
+library(tidyverse)
+library(plyr)
+library(deldir)
+library(alphahull)
+library(xml2)
+library(sp)
+library(viridis)
+library(readxl)
+`%!in%` <- compose(`!`, `%in%`)
+setwd("~/GitHub/Tina2024/")
+
+#### loading GRANAR 
+source("./GRANAR/R/granar.R")
+source("./GRANAR/R/micro_hydro.R")
+### loading mock parameter file
+params <- read_param_xml("./GRANAR/www/Zea_mays_CT.xml")
+#### loading input from anatomical trait dataset
+Raw_data <- readxl::read_excel("./www/Root no CR6_update_2.xlsx")
+
+Raw_data[Raw_data$Treatment=='Drought',2]<-'sheltered'
+Raw_data[Raw_data$Treatment=='Well watered',2]<-'non-sheltered'
+
+Sampl = Raw_data%>%
+  mutate(RXA = `Root area`,
+         TSA = `Stele area`,
+         TCA = `Cortex area`,
+         AA = `Aerenchyma area`,
+         aerenchyma= `Aerenchyma percent`/100,
+         radius = sqrt(RXA/pi),
+         r_stele = sqrt(TSA/pi),
+         MXA = `Total Metaxylem area`,
+         nX = `Metaxylem number`,
+         X_size = 2*sqrt((MXA/nX)/pi),
+         CF = `Cortical file number`,
+         OneC = (radius-r_stele)/(CF+2),
+         OC = 2*sqrt(`Cortical cell size`/pi),
+         ratio = (2+0.07456*r_stele*1000)/nX,
+         nPX = nX*ratio,
+         PXA_1 = 1000^2*(sqrt(radius/35)/10)^2,
+         k_protxyl_s = PXA_1^2/(8*pi*200*1E-5/3600/24)*1E-12,
+         kx_unM = k_protxyl_s*nPX*200/1E4, # kx when only the proto xylem have their cell wall lignified 
+         LMXA = MXA,
+         LMXA_1 = LMXA*1000^2/nX,
+         k_Mxyl_s = LMXA_1^2/(8*pi*200*1E-5/3600/24)*1E-12,
+         kx_M = k_Mxyl_s*nX*200/1E4 + kx_unM)
+
+Sampl%>%
+  ggplot()+geom_histogram(aes(RXA-TCA), fill = 'blue', alpha = 0.5, bins = 50)+geom_histogram(aes(TSA), fill = 'red', alpha = 0.5, bins = 50)+
+  theme_classic()+xlab('TCA [mm2]')
+
+av_dat = Sampl%>%
+  dplyr::group_by(Genotype, Treatment, Roottype)%>%
+  dplyr::summarise(m_CF = mean(CF, na.rm = T),
+                   m_OC = mean(OC, na.rm = T),
+                   m_aerenchyma = mean(aerenchyma, na.rm = T), .groups = "drop")
+
+Sampl = left_join(Sampl, av_dat , by = c("Genotype", "Treatment", "Roottype"))
+
+Sampl = Sampl%>%
+  mutate(CF = ifelse((is.na(CF) | CF <= 4), m_CF,CF),
+         OneC = (radius-r_stele)/CF,
+         OC = ifelse((is.na(OC) | OC > 0.2), m_OC,OC),
+         aerenchyma = ifelse(is.na(aerenchyma), m_aerenchyma,aerenchyma))%>%
+  arrange(radius)
+
+Sampl$id = 1:nrow(Sampl)
+Sampl %>%
+  ggplot(aes(y = id, yend = id))+
+  geom_segment(aes(x= 0, xend = r_stele), colour = 'red')+
+  geom_segment(aes(x = r_stele, xend = radius ), colour = "blue")+theme_classic()+
+  geom_point(aes(x = r_stele + OneC))+
+  xlab('cross section radius [mm]')+
+  ylab('cross section id')
+
+Sampl$model_RXA = NA
+Sampl$model_TSA = NA
+Sampl$model_XVA = NA
+Sampl$model_AA = NA
+
+
+###### Proc for the generation of the anatomies
+for(i in 1:nrow(Sampl)){
+  # Set the input line
+  tmp_sampl <- Sampl[i,]
+  if(is.na(tmp_sampl$aerenchyma)){
+    tmp_sampl$aerenchyma = 0
+  }
+  # clear results
+  if(file.exists("./MECHA/cellsetdata/current_root.xml")){
+    file.remove("./MECHA/cellsetdata/current_root.xml")
+    file.remove("./MECHA/Projects/GRANAR/in/Maize_Geometry_aer.xml")
+  }
+  # Run GRANAR and change the parameter for the selected simulation
+  sim <- run_granar(params, tmp_sampl)
+  # Write the outputs
+  file.copy("./MECHA/cellsetdata/current_root.xml", 
+            paste0("./MECHA/cellsetdata/root_",i,".xml"), overwrite = T)
+  file.copy("./MECHA/Projects/GRANAR/in/Maize_Geometry_aer.xml",
+            paste0( "./MECHA/Projects/GRANAR/in/Maize_Geometry_aer_",i,".xml"), overwrite = T)
+  
+}
+
+fls <- list.files("./MECHA/cellsetdata/")
+fls <- fls[grepl("root_", fls)]
+
+for(j in fls){
+  out = granar_metadata(paste0("./MECHA/cellsetdata/",j))
+  i <- parse_number(j)
+  Sampl$model_RXA[i] = out$value[out$type == "layer_area" & out$param == "all"]
+  Sampl$model_TSA[i] = out$value[out$type == "layer_area" & out$param == "stelar"]
+  Sampl$model_XVA[i] = out$value[out$type == "layer_area" & out$param == "metaxylem"]
+  mAA = out$value[out$type == "layer_area" & out$param == "aerenchyma"]
+  Sampl$model_AA[i] = ifelse(length(mAA)>0, mAA, 0)
+}
+
+
+area = rbind(tibble(M_area = Sampl$RXA, S_area = Sampl$model_RXA, what = "Root cross-section"),
+             tibble(M_area = Sampl$TSA, S_area = Sampl$model_TSA, what = "Stele"),
+             tibble(M_area = Sampl$MXA, S_area = Sampl$model_XVA, what = "Meta Xylem"),
+             tibble(M_area = Sampl$AA, S_area = Sampl$model_AA, what = "Aerenchyma"))
+
+area%>%
+  ggplot()+
+  geom_point(aes(M_area, S_area, colour = what))+
+  geom_abline(slope = 1, linetype = 2)+
+  theme_classic()+
+  facet_wrap(~what, scales = "free")+
+  labs(y = "Simulated area [mm²]", x = "Measured area [mm²]")
+  
+
+
+# ### Proc: estimation of the radial hydraulic conductivities
+fls <- list.files("./MECHA/cellsetdata/")
+fls <- fls[grepl("root_", fls)]
+for(j in fls){
+  message("--------------")
+  print(j)
+  message("--------------")
+  
+  if(file.exists("./MECHA/Projects/GRANAR/out/M1v4/Root/Project_Test/results/Macro_prop_1,0.txt")){
+    file.remove("./MECHA/Projects/GRANAR/out/M1v4/Root/Project_Test/results/Macro_prop_1,0.txt")
+    file.remove("./MECHA/Projects/GRANAR/out/M1v4/Root/Project_Test/results/Macro_prop_2,1.txt")
+    file.remove("./MECHA/Projects/GRANAR/out/M1v4/Root/Project_Test/results/Macro_prop_4,2.txt")
+    file.remove("./MECHA/cellsetdata/current_root.xml")
+    file.remove("./MECHA/Projects/GRANAR/in/Maize_Geometry_aer.xml")
+  }
+  
+  # Loading input files for the current estimation
+  fc <- file.copy(paste0("./MECHA/cellsetdata/",j), "./MECHA/cellsetdata/current_root.xml", overwrite = T)
+  if(fc == FALSE){next()}
+  fc <- file.copy(paste0("./MECHA/Projects/GRANAR/in/Maize_Geometry_aer_", parse_number(j), ".xml"),
+                  paste0("./MECHA/Projects/GRANAR/in/Maize_Geometry_aer.xml"), overwrite = T)
+  if(fc == FALSE){next()}
+  
+  # MECHA input change
+  id <- parse_number(j)
+  microhydro(path = "MECHA/Projects/GRANAR/in/Maize_hydraulics.xml",
+             kw = 0.00024,
+             km = 3e-5,
+             kAQP = 0.00043,
+             kpl = 5.3e-12)
+  
+  wallthick(path = "MECHA/Projects/GRANAR/in/Maize_Geometry_aer.xml", 1.5)
+  
+  # Run MECHA - - - - - - -
+  system("python3 ./MECHA/MECHAv4_septa.py")
+  message("python script has ended")
+  
+  # if works well, then:
+  if(file.exists("./MECHA/Projects/GRANAR/out/M1v4/Root/Project_Test/results/Macro_prop_1,0.txt")){
+    # Save output
+    message ("success")
+    file.copy("./MECHA/Projects/GRANAR/out/M1v4/Root/Project_Test/results/Macro_prop_1,0.txt",
+              paste0("./MECHA/Projects/GRANAR/out/M1v4/Root/Macro_prop_1,0_",id,".txt"), overwrite = T)
+    file.copy("./MECHA/Projects/GRANAR/out/M1v4/Root/Project_Test/results/Macro_prop_2,1.txt",
+              paste0("./MECHA/Projects/GRANAR/out/M1v4/Root/Macro_prop_2,1_",id,".txt"), overwrite = T)
+    file.copy("./MECHA/Projects/GRANAR/out/M1v4/Root/Project_Test/results/Macro_prop_4,2.txt",
+              paste0("./MECHA/Projects/GRANAR/out/M1v4/Root/Macro_prop_4,2_",id,".txt"), overwrite = T)
+  }else{message ("fail and move to next simulation")}
+  
+}
+
+
+# Read Mecha output
+fls <- list.files("./MECHA/Projects/GRANAR/out/M1v4/Root/")
+fls <- fls[grepl(".txt", fls)]
+
+K <- tibble(kr = NULL, kx = NULL, sampl_id = NULL, apo = NULL)
+for (k in fls){
+  M <- read_file(paste0("./MECHA/Projects/GRANAR/out/M1v4/Root/",k))
+  tmp_M <- strsplit(M, split="\n")[[1]]
+  K_xyl_spec <- as.numeric(strsplit(tmp_M[15], " ")[[1]][5])
+  kr_M <- as.numeric(strsplit(tmp_M[17], " ")[[1]][4])
+  scenario <- round(parse_number(unlist(str_split(k,"_"))[3])/10)
+  sampl_id <- parse_number(unlist(str_split(k,"_"))[4])
+  K <- rbind(K, tibble(kr = kr_M, kx = K_xyl_spec, sampl_id = sampl_id, apo = scenario))
+}
+K = K %>%arrange(sampl_id, apo)
+
+#### Merge the results on the input dataframe
+Sampl$Kx = NA
+Sampl$kr1_new = NA
+Sampl$Kr1 = NA
+Sampl$Kr2 = NA
+Sampl$Kr3 = NA
+
+
+# Axial hydraulic conductance (cm3 hPa-1 d-1)
+Sampl$Kx[Sampl$id %in% K$sampl_id] = K$kx[K$apo == 1]
+Sampl%>%
+  filter(!is.na(Kx)) %>% 
+  ggplot()+
+  geom_point(aes(MXA, Kx), colour = "blue")+
+  theme_classic()
+
+
+
+# Radial hydraulic conductivity (cm hPa-1 d-1)
+Sampl$kr1_new[Sampl$id %in% K$sampl_id] = K$kr[K$apo == 1]
+Sampl$kr2_new[Sampl$id %in% K$sampl_id] = K$kr[K$apo == 2]
+Sampl$kr3_new[Sampl$id %in% K$sampl_id] = K$kr[K$apo == 4]
+
+# Radial hydraulic conductance (cm3 hPa-1 d-1)
+# Multiply by the surface of the segment (1 cm length * perimeter of the root)
+Sampl$Kr1[Sampl$id %in% K$sampl_id] = K$kr[K$apo == 1]*2*pi*Sampl$radius[Sampl$id %in% K$sampl_id]/10
+Sampl$Kr2[Sampl$id %in% K$sampl_id] = K$kr[K$apo == 2]*2*pi*Sampl$radius[Sampl$id %in% K$sampl_id]/10
+Sampl$Kr3[Sampl$id %in% K$sampl_id] = K$kr[K$apo == 4]*2*pi*Sampl$radius[Sampl$id %in% K$sampl_id]/10
+
+Sampl%>%
+  filter(!is.na(Kx)) %>% 
+  ggplot()+
+  geom_point(aes(radius-r_stele, Kr1, colour = radius))+
+  theme_classic()+ylab("Radial hydraulic conductivity [cm hPa-1 d-1]")+
+  xlab("cortex width [mm]")+
+  viridis::scale_colour_viridis()
+
+Sampl%>%
+  filter(!is.na(Kx)) %>% 
+  ggplot()+
+  geom_point(aes(radius-r_stele, kr1_new, colour = radius))+
+  theme_classic()+ylab("Radial hydraulic conductivity [cm hPa-1 d-1]")+
+  xlab("cortex width [mm]")+
+  viridis::scale_colour_viridis()
+
+fit <- nls(kr1_new ~ 1/(a * cortex)^b, data = Sampl%>%filter(!is.na(Kx)) %>% mutate(cortex = radius-r_stele), start = list(a = 1, b = 1))
+
+summary(fit)
+
+fitted_values <- fitted(fit)
+residuals <- residuals(fit)
+# Calculate RMSE
+rmse <- sqrt(mean(residuals^2))
+
+data = Sampl%>%filter(!is.na(Kx)) %>% mutate(cortex = radius-r_stele)
+
+# Calculate R-squared
+ss_res <- sum(residuals^2)
+ss_tot <- sum((data$kr1_new - mean(data$kr1_new))^2)
+r_squared <- 1 - (ss_res / ss_tot)
+
+Sampl%>%
+  filter(!is.na(Kx)) %>% 
+  ggplot()+
+  geom_point(aes(radius-r_stele, kr1_new, colour = radius))+
+  geom_line(aes(radius-r_stele, fitted_values), colour = "blue", linetype = 2, size = 1)+
+  theme_classic()+ylab("Radial hydraulic conductivity [cm hPa-1 d-1]")+
+  xlab("cortex width [mm]")+
+  viridis::scale_colour_viridis()
+
+
+Sampl%>%
+  mutate(fcortex = round(radius)) %>% 
+  filter(!is.na(Kx)) %>% 
+  ggplot(aes(radius-r_stele, Kr1, colour = radius))+
+  geom_point(aes(colour = Treatment))+
+  geom_smooth(aes(colour= Treatment), method = "lm")+
+  theme_classic()+ylab("Radial hydraulic conductivity [cm hPa-1 d-1]")+
+  xlab("cortex width [mm]")+
+  viridis::scale_colour_viridis(discrete = T)
+
+Sampl%>%
+  mutate(fcortex = round(radius)) %>% 
+  filter(!is.na(Kx), radius < 5.5) %>% 
+  ggplot(aes(radius, (Kr1*10^-6/86400)/0.0001, colour = Treatment))+
+  geom_point(aes(colour = Treatment, shape = factor(Roottype)), size = 3, alpha = 0.3)+
+  geom_smooth(aes(colour= Treatment), method = "lm", alpha = 0.2)+
+  theme_classic()+ylab("Radial hydraulic conductance [m3 MPa-1 s-1]")+
+  xlab("Radius [mm]")+
+  labs(shape = "Root type")
+
+Sampl%>%
+  mutate(fcortex = round(radius)) %>% 
+  filter(!is.na(Kx), radius < 5.5) %>% 
+  ggplot(aes(Roottype, (Kr1*10^-6/86400)/0.0001, colour = Treatment))+
+  #geom_point(aes(colour = Treatment, shape = factor(Roottype)), size = 3, alpha = 0.3)+
+  geom_boxplot(aes(colour= Treatment), method = "lm", alpha = 0.2)+
+  theme_classic()+ylab("Radial hydraulic conductance [m3 MPa-1 s-1]")+
+  xlab("Root type")
+
+
+Sampl%>%
+  mutate(fcortex = round(radius)) %>% 
+  filter(!is.na(Kx)) %>% 
+  ggplot(aes(Roottype, (Kr1*10^-6/86400)/0.0001, colour = Treatment))+
+  #geom_point(aes(colour = Treatment, shape = factor(Roottype)), size = 3, alpha = 0.3)+
+  geom_boxplot(aes(colour= Treatment), alpha = 0.2)+
+  facet_wrap(~Type)+
+  theme_classic()+ylab("Radial hydraulic conductance [m3 MPa-1 s-1]")+
+  xlab("Root type")
+
+Sampl%>%
+  mutate(fcortex = round(radius)) %>% 
+  filter(!is.na(Kx)) %>% 
+  ggplot(aes(Roottype, (Kr1*10^-6/86400)/0.0001, colour = Treatment))+
+  #geom_point(aes(colour = Treatment, shape = factor(Roottype)), size = 3, alpha = 0.3)+
+  geom_boxplot(aes(colour= Treatment), alpha = 0.2)+
+  facet_wrap(~Genotype)+
+  theme_classic()+ylab("Radial hydraulic conductance [m3 MPa-1 s-1]")+
+  xlab("Root type")
+
+
+
+write.csv(Sampl, "./Sampl_KrKx.csv")
+
+Sampl$Kr1
+
+Sampl %>% 
+  ggplot(aes(kx_M, Kx))+
+  geom_point()+
+  geom_abline(slope = 1)
+
+df = read.csv("Sampl_KrKx.csv")
+
+df%>%
+  ggplot(aes(Roottype, radius))+
+  geom_boxplot(aes(fill = Treatment))

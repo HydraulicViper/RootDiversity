@@ -28,7 +28,7 @@ if Project=='Projects/GRANAR/':
     Hydr='Maize_hydraulics.xml'
     BC='Maize_BC_kr.xml'#'Maize_BC_kr.xml'
     Horm='Maize_Hormones_Carriers.xml'
-    Cell_connec_max=50
+    Cell_connec_max=70
     Ncellperimeters=100
     V_modifier=1.0
     test_mass_balance=0
