@@ -186,9 +186,13 @@ Schneider, Jesse R. Lasky and Ruairidh J. H. Sawers
 
 ## Some results:
 Koehler et al. 
+
 ![](main_files/figure-Tks/kr_nodes.png)<!-- -->
+
+This shows the link between root type and radial hydraulic conductance.
+In addition, the relationship for root radius and radial hydrauli conductance. 
 
 McLaughlin et al. 2024
 ![](main_files/figure-gfm/cluster_root-1.png)<!-- -->
-![](main_files/figure-gfm/Kr_plot-1.png)<!-- -->
+![](main_files/figure-gfm/Kr_plot-2.png)<!-- -->
 
