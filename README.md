@@ -1,11 +1,4 @@
-[![DOI](https://zenodo.org/badge/649583552.svg)](https://zenodo.org/doi/10.5281/zenodo.10104520)
 
-Evidence that variation in root anatomy contributes to local adaptation
-in Mexican native maize
-================
-
-Chloee M. McLaughlin, Meng Li, Melanie Perryman, Adrien Heymans, Hannah
-Schneider, Jesse R. Lasky and Ruairidh J. H. Sawers
 
 ## GRANAR-MECHA: modeling pipeline to estimate emergent hydraulic properties”
 
@@ -52,11 +45,6 @@ for(i in 1:nrow(Sampl)){
 }
 ```
 
-## CIMMyT cluster
-
-The seven clusters of the CIMMyT panel are summarized here.
-
-![](main_files/figure-gfm/cluster_root-1.png)<!-- -->
 
 ## Run MECHA to estimate emergent hydraulic properties
 
@@ -173,4 +161,32 @@ The emerging hydraulic properties are shown in the figures below to
 highlight the radius effect and the one of the cortex width on the
 radial hydraulic conductivity and conductance.
 
-![](main_files/figure-gfm/Kr_plot-1.png)<!-- -->![](main_files/figure-gfm/Kr_plot-2.png)<!-- -->
+## This repository was updated and branched for:
+
+[![DOI]()]()
+
+Node order matters: comparative analysis of soil water limitation effects on root anatomy between nodal position and maize genotypes (Zea mays L.)
+===============
+Tina Koehler, Yunhee Kim, Shu-Yin Tung, Adrien Heymans, Nicolas Tyborski, Franziska Steiner, Andreas J. Wild, Johanna Pausch, Mutez A. Ahmed, Hannah Schneider
+
+The initial branch was:
+[![DOI](https://zenodo.org/badge/649583552.svg)](https://zenodo.org/doi/10.5281/zenodo.10104520)
+
+and used in:
+
+[Evidence that variation in root anatomy contributes to local adaptation
+in Mexican native maize](https://doi.org/10.1111/eva.13673)
+================
+
+Chloee M. McLaughlin, Meng Li, Melanie Perryman, Adrien Heymans, Hannah
+Schneider, Jesse R. Lasky and Ruairidh J. H. Sawers
+
+
+## Some results:
+Koehler et al. 
+![](main_files/figure-Tks/kr_nodes.png)<!-- -->
+
+McLaughlin et al. 2024
+![](main_files/figure-gfm/cluster_root-1.png)<!-- -->
+![](main_files/figure-gfm/Kr_plot-1.png)<!-- -->
+
