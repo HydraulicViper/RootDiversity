@@ -28,7 +28,7 @@ cd RootDiversity
 ### From mamba/conda
 
 >[!NOTE] 
-> We recommend to use [Mamba](https://mamba.readthedocs.io/en/latest/installation/mamba-installation.html) to create a virtual environment and run the FEM script in it ([Anaconda](https://www.anaconda.com/download) works also)
+> We recommend to use [Mamba](https://mamba.readthedocs.io/en/latest/installation/mamba-installation.html) to create a virtual environment and run the script in it ([Anaconda](https://www.anaconda.com/download) works also)
 >
 > For more information on how to set-up conda, please check the [conda user guide](https://conda.io/projects/conda/en/latest/user-guide/install)
 
