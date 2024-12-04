@@ -1,5 +1,5 @@
 
-ApoSymp <- function(path = "MECHA/Projects/granar/out/Root/Project_Test/baseline/Macro_prop_1,0.txt"){
+ApoSymp <- function(path = "src/MECHA/Projects/granar/out/Root/Project_Test/baseline/Macro_prop_1,0.txt"){
   
   coef_width_symplast=4/5
   mpercm=0.01

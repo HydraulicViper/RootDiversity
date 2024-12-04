@@ -26,11 +26,11 @@ run_granar <- function(params, tmp_sampl){
   }
   print(params)
   sim <- create_anatomy(parameters = params)
-  write_anatomy_xml(sim, "./MECHA/cellsetdata/current_root.xml")
+  write_anatomy_xml(sim, "./src/MECHA/cellsetdata/current_root.xml")
   if(length(sim$id_aerenchyma) > 0){
-    aer_in_geom_xml(sim, "./MECHA/Projects/GRANAR/in/Maize_Geometry.xml")
+    aer_in_geom_xml(sim, "./src/MECHA/Projects/GRANAR/in/Maize_Geometry.xml")
   }else{
-    fc <- file.copy("./MECHA/Projects/GRANAR/in/Maize_Geometry_noAA.xml", "./MECHA/Projects/GRANAR/in/Maize_Geometry_aer.xml", overwrite = T )
+    fc <- file.copy("./src/MECHA/Projects/GRANAR/in/Maize_Geometry_noAA.xml", "./src/MECHA/Projects/GRANAR/in/Maize_Geometry_aer.xml", overwrite = T )
   }
   return(sim)
 }

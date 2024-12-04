@@ -1,6 +1,6 @@
 
 
-microhydro <- function(path = "MECHA/Projects/granar/in/Maize_Hydraulics.xml", 
+microhydro <- function(path = "/src/MECHA/Projects/granar/in/Maize_Hydraulics.xml", 
                        kw = 2.4E-4, # hydraulic conductivity of standard walls
                        km = 3.0E-5, # Cell membrane permeability, with separate contribution of the biphospholipid layer (km) and AQP (kAQP)
                        kAQP = 4.3E-4, # cm/hPa/d
@@ -25,7 +25,7 @@ microhydro <- function(path = "MECHA/Projects/granar/in/Maize_Hydraulics.xml",
   
 }
 
-wallthick <- function(path = "MECHA/Projects/GRANAR/in/Maize_Geometry.xml", wall_thickness = 1.5){
+wallthick <- function(path = "src/MECHA/Projects/GRANAR/in/Maize_Geometry.xml", wall_thickness = 1.5){
   x <- read_xml(path)
   thick <- xml_children(x)[19]
   ver <- xml_name(thick)

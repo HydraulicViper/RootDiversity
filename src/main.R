@@ -13,12 +13,12 @@ library(readxl)
 setwd("~/GitHub/Tina2024/")
 
 #### loading GRANAR 
-source("./GRANAR/R/granar.R")
-source("./GRANAR/R/micro_hydro.R")
+source("./src/GRANAR/R/granar.R")
+source("./src/GRANAR/R/micro_hydro.R")
 ### loading mock parameter file
-params <- read_param_xml("./GRANAR/www/Zea_mays_CT.xml")
+params <- read_param_xml("./src/GRANAR/www/Zea_mays_CT.xml")
 #### loading input from anatomical trait dataset
-Raw_data <- readxl::read_excel("./www/Root no CR6_update_2.xlsx")
+Raw_data <- readxl::read_excel("./data/in/Root no CR6_update_2.xlsx")
 
 Raw_data[Raw_data$Treatment=='Drought',2]<-'sheltered'
 Raw_data[Raw_data$Treatment=='Well watered',2]<-'non-sheltered'
@@ -89,25 +89,25 @@ for(i in 1:nrow(Sampl)){
     tmp_sampl$aerenchyma = 0
   }
   # clear results
-  if(file.exists("./MECHA/cellsetdata/current_root.xml")){
-    file.remove("./MECHA/cellsetdata/current_root.xml")
-    file.remove("./MECHA/Projects/GRANAR/in/Maize_Geometry_aer.xml")
+  if(file.exists("./src/MECHA/cellsetdata/current_root.xml")){
+     file.remove("./src/MECHA/cellsetdata/current_root.xml")
+     file.remove("./src/MECHA/Projects/GRANAR/in/Maize_Geometry_aer.xml")
   }
   # Run GRANAR and change the parameter for the selected simulation
   sim <- run_granar(params, tmp_sampl)
   # Write the outputs
-  file.copy("./MECHA/cellsetdata/current_root.xml", 
-            paste0("./MECHA/cellsetdata/root_",i,".xml"), overwrite = T)
-  file.copy("./MECHA/Projects/GRANAR/in/Maize_Geometry_aer.xml",
-            paste0( "./MECHA/Projects/GRANAR/in/Maize_Geometry_aer_",i,".xml"), overwrite = T)
+  file.copy("./src/MECHA/cellsetdata/current_root.xml", 
+            paste0("./src/MECHA/cellsetdata/root_",i,".xml"), overwrite = T)
+  file.copy("./src/MECHA/Projects/GRANAR/in/Maize_Geometry_aer.xml",
+            paste0( "./src/MECHA/Projects/GRANAR/in/Maize_Geometry_aer_",i,".xml"), overwrite = T)
   
 }
 
-fls <- list.files("./MECHA/cellsetdata/")
+fls <- list.files("./src/MECHA/cellsetdata/")
 fls <- fls[grepl("root_", fls)]
 
 for(j in fls){
-  out = granar_metadata(paste0("./MECHA/cellsetdata/",j))
+  out = granar_metadata(paste0("./src/MECHA/cellsetdata/",j))
   i <- parse_number(j)
   Sampl$model_RXA[i] = out$value[out$type == "layer_area" & out$param == "all"]
   Sampl$model_TSA[i] = out$value[out$type == "layer_area" & out$param == "stelar"]
@@ -133,64 +133,64 @@ area%>%
 
 
 # ### Proc: estimation of the radial hydraulic conductivities
-fls <- list.files("./MECHA/cellsetdata/")
+fls <- list.files("./src/MECHA/cellsetdata/")
 fls <- fls[grepl("root_", fls)]
 for(j in fls){
   message("--------------")
   print(j)
   message("--------------")
   
-  if(file.exists("./MECHA/Projects/GRANAR/out/M1v4/Root/Project_Test/results/Macro_prop_1,0.txt")){
-    file.remove("./MECHA/Projects/GRANAR/out/M1v4/Root/Project_Test/results/Macro_prop_1,0.txt")
-    file.remove("./MECHA/Projects/GRANAR/out/M1v4/Root/Project_Test/results/Macro_prop_2,1.txt")
-    file.remove("./MECHA/Projects/GRANAR/out/M1v4/Root/Project_Test/results/Macro_prop_4,2.txt")
-    file.remove("./MECHA/cellsetdata/current_root.xml")
-    file.remove("./MECHA/Projects/GRANAR/in/Maize_Geometry_aer.xml")
+  if(file.exists("./src/MECHA/Projects/GRANAR/out/M1v4/Root/Project_Test/results/Macro_prop_1,0.txt")){
+    file.remove("./src/MECHA/Projects/GRANAR/out/M1v4/Root/Project_Test/results/Macro_prop_1,0.txt")
+    file.remove("./src/MECHA/Projects/GRANAR/out/M1v4/Root/Project_Test/results/Macro_prop_2,1.txt")
+    file.remove("./src/MECHA/Projects/GRANAR/out/M1v4/Root/Project_Test/results/Macro_prop_4,2.txt")
+    file.remove("./src/MECHA/cellsetdata/current_root.xml")
+    file.remove("./src/MECHA/Projects/GRANAR/in/Maize_Geometry_aer.xml")
   }
   
   # Loading input files for the current estimation
-  fc <- file.copy(paste0("./MECHA/cellsetdata/",j), "./MECHA/cellsetdata/current_root.xml", overwrite = T)
+  fc <- file.copy(paste0("./src/MECHA/cellsetdata/",j), "./src/MECHA/cellsetdata/current_root.xml", overwrite = T)
   if(fc == FALSE){next()}
-  fc <- file.copy(paste0("./MECHA/Projects/GRANAR/in/Maize_Geometry_aer_", parse_number(j), ".xml"),
-                  paste0("./MECHA/Projects/GRANAR/in/Maize_Geometry_aer.xml"), overwrite = T)
+  fc <- file.copy(paste0("./src/MECHA/Projects/GRANAR/in/Maize_Geometry_aer_", parse_number(j), ".xml"),
+                  paste0("./src/MECHA/Projects/GRANAR/in/Maize_Geometry_aer.xml"), overwrite = T)
   if(fc == FALSE){next()}
   
   # MECHA input change
   id <- parse_number(j)
-  microhydro(path = "MECHA/Projects/GRANAR/in/Maize_hydraulics.xml",
+  microhydro(path = "src/MECHA/Projects/GRANAR/in/Maize_hydraulics.xml",
              kw = 0.00024,
              km = 3e-5,
              kAQP = 0.00043,
              kpl = 5.3e-12)
   
-  wallthick(path = "MECHA/Projects/GRANAR/in/Maize_Geometry_aer.xml", 1.5)
+  wallthick(path = "src/MECHA/Projects/GRANAR/in/Maize_Geometry_aer.xml", 1.5)
   
   # Run MECHA - - - - - - -
-  system("python3 ./MECHA/MECHAv4_septa.py")
+  system("python3 ./src/MECHA/MECHAv4_septa.py")
   message("python script has ended")
   
   # if works well, then:
-  if(file.exists("./MECHA/Projects/GRANAR/out/M1v4/Root/Project_Test/results/Macro_prop_1,0.txt")){
+  if(file.exists("./src/MECHA/Projects/GRANAR/out/M1v4/Root/Project_Test/results/Macro_prop_1,0.txt")){
     # Save output
     message ("success")
-    file.copy("./MECHA/Projects/GRANAR/out/M1v4/Root/Project_Test/results/Macro_prop_1,0.txt",
-              paste0("./MECHA/Projects/GRANAR/out/M1v4/Root/Macro_prop_1,0_",id,".txt"), overwrite = T)
-    file.copy("./MECHA/Projects/GRANAR/out/M1v4/Root/Project_Test/results/Macro_prop_2,1.txt",
+    file.copy("./src/MECHA/Projects/GRANAR/out/M1v4/Root/Project_Test/results/Macro_prop_1,0.txt",
+              paste0("./src/MECHA/Projects/GRANAR/out/M1v4/Root/Macro_prop_1,0_",id,".txt"), overwrite = T)
+    file.copy("./src/MECHA/Projects/GRANAR/out/M1v4/Root/Project_Test/results/Macro_prop_2,1.txt",
               paste0("./MECHA/Projects/GRANAR/out/M1v4/Root/Macro_prop_2,1_",id,".txt"), overwrite = T)
-    file.copy("./MECHA/Projects/GRANAR/out/M1v4/Root/Project_Test/results/Macro_prop_4,2.txt",
-              paste0("./MECHA/Projects/GRANAR/out/M1v4/Root/Macro_prop_4,2_",id,".txt"), overwrite = T)
+    file.copy("./src/MECHA/Projects/GRANAR/out/M1v4/Root/Project_Test/results/Macro_prop_4,2.txt",
+              paste0("./src/MECHA/Projects/GRANAR/out/M1v4/Root/Macro_prop_4,2_",id,".txt"), overwrite = T)
   }else{message ("fail and move to next simulation")}
   
 }
 
 
 # Read Mecha output
-fls <- list.files("./MECHA/Projects/GRANAR/out/M1v4/Root/")
+fls <- list.files("./src/MECHA/Projects/GRANAR/out/M1v4/Root/")
 fls <- fls[grepl(".txt", fls)]
 
 K <- tibble(kr = NULL, kx = NULL, sampl_id = NULL, apo = NULL)
 for (k in fls){
-  M <- read_file(paste0("./MECHA/Projects/GRANAR/out/M1v4/Root/",k))
+  M <- read_file(paste0("./src/MECHA/Projects/GRANAR/out/M1v4/Root/",k))
   tmp_M <- strsplit(M, split="\n")[[1]]
   K_xyl_spec <- as.numeric(strsplit(tmp_M[15], " ")[[1]][5])
   kr_M <- as.numeric(strsplit(tmp_M[17], " ")[[1]][4])
@@ -323,7 +323,7 @@ Sampl%>%
 
 
 
-write.csv(Sampl, "./Sampl_KrKx.csv")
+write.csv(Sampl, "./data/Sampl_KrKx.csv")
 
 Sampl$Kr1
 
