@@ -1,6 +1,6 @@
 
 # GRANAR-MECHA: modeling pipeline to estimate emergent hydraulic properties
-1.2 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.14045758.svg)](https://doi.org/10.5281/zenodo.14045758)
+1.2.1 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.14045758.svg)](https://doi.org/10.5281/zenodo.14045758)
 
 ## 1. About
 
@@ -58,15 +58,12 @@ Rscript ./src/main.R
 
 Outputs include:
 
-Geometry: cellsetdata/root.xml and the needed compagnon file for MECHA Maize_Geometry_aer.xml
+Geometry:  ```cellsetdata/root.xml``` and the needed compagnon file for MECHA ```Maize_Geometry_aer.xml```
 
 
 ### 3.2 Run MECHA
 
-The MECHA estimates radial hydraulic conductivity from the root corss section anatomy
-generated with GRANAR or CellSeT (Pound et al., 2012) and from the
-subcellular scale hydraulic properties of walls, membranes, and
-plasmodesmata.
+The MECHA estimates radial hydraulic conductivity from the root cross section anatomy generated with GRANAR or CellSeT (Pound et al., 2012) and from the subcellular scale hydraulic properties of walls, membranes, and plasmodesmata.
 
 | Sub-cell hydraulic properties   | Unit                 | Value   | Ref.                 |
 |---------------------------------|----------------------|---------|----------------------|
@@ -78,11 +75,9 @@ plasmodesmata.
 
 Three hydraulic scenario were implemeted for each simulation:
 
-- 1.  Endodermal Casparian strip
-
-- 2.  Endodermal suberization
-
-- 3.  Endodermis full suberization and exodermal Casparian strip 
+1. Endodermal Casparian strip
+2. Endodermal suberization
+3. Endodermis full suberization and exodermal Casparian strip 
 
 ```bash
 Rscript ./src/mecha.R
@@ -121,9 +116,7 @@ The initial branch was used in:
 [Evidence that variation in root anatomy contributes to local adaptation
 in Mexican native maize](https://doi.org/10.1111/eva.13673)
 ================
-
-Chloee M. McLaughlin, Meng Li, Melanie Perryman, Adrien Heymans, Hannah
-Schneider, Jesse R. Lasky and Ruairidh J. H. Sawers
+Chloee M. McLaughlin, Meng Li, Melanie Perryman, Adrien Heymans, Hannah Schneider, Jesse R. Lasky and Ruairidh J. H. Sawers
 
 
 ## 5. Some results:
@@ -143,4 +136,3 @@ McLaughlin et al. 2024
 This project is licensed under [GPL-3.0](./LICENSE). For more details, see [LICENSE](./LICENSE).
 Lead development and coordination: Adrien Heymans.
 Contributions from Chloee M. McLaughlin and Tina Koehler.
-Funding: 
