@@ -80,7 +80,7 @@ Three hydraulic scenario were implemeted for each simulation:
 3. Endodermis full suberization and exodermal Casparian strip 
 
 ```bash
-Rscript ./src/mecha.R
+Rscript ./src/mecha_proc.R
 ```
 
 ### 3.3 Radial hydraulic conductance and conductivity analysis
@@ -136,3 +136,5 @@ McLaughlin et al. 2024
 This project is licensed under [GPL-3.0](./LICENSE). For more details, see [LICENSE](./LICENSE).
 Lead development and coordination: Adrien Heymans.
 Contributions from Chloee M. McLaughlin and Tina Koehler.
+
+RootDiverity is a collaborative project and contributions are welcome. If you want to contribute, please contact the coordinator prior to any merge request.
