@@ -101,7 +101,7 @@ If you are using/modifying this repository for your analysis, please cite:
 
  > **McLaughlin CM, Li M, Perryman M, Heymans A, Schneider H, Lasky JR, Sawers RJH** (2024) *Evidence that variation in root anatomy contributes to local adaptation in Mexican native maize*. Evol Appl 17: e13673
 
-and the latest pipeline version: RootDiversity v1.2.1 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.14045758.svg)](https://doi.org/10.5281/zenodo.14045758)
+ > **Koehler T, Kim Y, Tung SY, Heymans A, Tyborski N, Steiner F, Wild AJ, Pausch J, Ahmed MA, Schneider HM** (2025) *Node of origin matters: comparative analysis of soil water limitation effects on nodal root anatomy in maize (Zea mays L.)*. Annals of Botany, mcaf075, [https://doi.org/10.1093/aob/mcaf075](https://doi.org/10.1093/aob/mcaf075)
 
 ## 5. Branch history
 
